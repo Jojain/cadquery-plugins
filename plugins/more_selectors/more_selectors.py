@@ -38,8 +38,9 @@ def recover_homogenous_affine_transformation(p, p_prime):
     t = p_prime[0] - np.dot(p[0], R)
 
     # calculate affine transformation matrix
-    return np.column_stack((np.row_stack((R, t)),
+    matrix = np.column_stack((np.row_stack((R, t)),
                             (0, 0, 0, 1)))
+    return matrix
 
 
 class CylinderSelector(cq.Selector):
@@ -61,6 +62,7 @@ class CylinderSelector(cq.Selector):
 
         self.base = self.get_base(self.axis)
         self.M = self.get_transform_matrix(self.base)
+        print(self.M)
 
         if start is None:
             self.infite = True
@@ -89,8 +91,11 @@ class CylinderSelector(cq.Selector):
     def get_transform_matrix(self, target_base):
         source_base = np.array((1,0,0)), np.array((0,1,0)), np.array((0,0,1))    
         np_matrix = recover_homogenous_affine_transformation(source_base, target_base)
-        print(np_matrix)
-        return cq.Matrix(np_matrix.T.tolist())
+        # print(np_matrix.T.tolist())
+        test = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+        # print(isinstance(test, list))
+        # return cq.Matrix(np_matrix.T.tolist())
+        return cq.Matrix(test)
 
     def filter(self, objectList):
         result =[]
@@ -99,7 +104,7 @@ class CylinderSelector(cq.Selector):
                 pass
             else:                
                 p = o.Center()
-                p_prime = p.transform(cq.Matrix(self.M))
+                p_prime = p.transform(self.M)
 
 
             p_radius = sqrt(p_prime.X**2 + p_prime.y**2)
@@ -114,11 +119,5 @@ class CylinderSelector(cq.Selector):
         return result
 
 
-def register():
-    """
-    Put the register function in order to be consistent with plugins initialization, even if it does nothing
-    """
-
-    pass
 
 box = cq.Workplane().box(10,10,10).edges(CylinderSelector(5,"Z",cq.Vector(0,0,0), height= 10))
